@@ -1,0 +1,581 @@
+#!/usr/bin/bash
+
+
+function update1_table() {
+    read -p "Enter the table name from the $SelectedDB DB: " upd_tab
+
+    # Check if the table exists
+    if [[ -f ~/DB/$SelectedDB/$upd_tab ]]; then
+        echo "Table exists."
+        
+        # Show the first line (header) for column selection
+        head -1 ~/DB/$SelectedDB/$upd_tab
+
+        # Prompt for column name
+        read -p "Enter the column name you want to update: " col_name
+
+        # Get the column index and type
+        col_index=$(awk -v name="$col_name" 'BEGIN{FS=":"} NR==1 {for (i=1; i<=NF; i++) if ($i == name) print i}' ~/DB/"$SelectedDB"/"$upd_tab")
+        col_type=$(awk -v col="$col_index" 'BEGIN{FS=":"} NR==2 {print $col}' ~/DB/"$SelectedDB"/"$upd_tab")
+        
+        if [[ -z $col_index ]]; then
+            echo "Invalid column name. Exiting."
+            return
+        fi
+
+        echo "Column '$col_name' found at index $col_index with type $col_type."
+
+        # Prompt for the value to replace and the new value
+        read -p "Enter the value you want to replace: " old_value
+        read -p "Enter the new value: " new_value
+
+        # Validate the new value based on the column type
+        if [[ $col_type == "char" && ! $new_value =~ ^[a-zA-Z]+$ ]]; then
+            echo "Invalid input. Column '$col_name' requires a string (only alphabetic characters)."
+            return
+        elif [[ $col_type == "int" && ! $new_value =~ ^[0-9]+$ ]]; then
+            echo "Invalid input. Column '$col_name' requires an integer."
+            return
+        fi
+
+        # Check if the column is a primary key and validate uniqueness
+        if [[ $col_index -eq 1 ]]; then # Assuming the first column is the primary key
+            is_duplicate=$(awk -v val="$new_value" -v col="$col_index" 'BEGIN{FS=":"; found=0} $col == val {found=1} END{print found}' ~/DB/"$SelectedDB"/"$upd_tab")
+            
+            if [[ $is_duplicate -eq 1 ]]; then
+                echo "Duplicate value detected for primary key. Primary key values must be unique."
+                return
+            fi
+        fi
+
+        # Update the table with the new value
+        temp_file=$(mktemp)
+        awk -v col="$col_index" -v old_val="$old_value" -v new_val="$new_value" '
+        BEGIN{FS=":"; OFS=":"}
+        {
+            if ($col == old_val) $col = new_val;
+            print $0
+        }' ~/DB/"$SelectedDB"/"$upd_tab" > "$temp_file"
+
+        # Save changes to the original file
+        mv "$temp_file" ~/DB/"$SelectedDB"/"$upd_tab"
+
+        echo "Value updated successfully."
+    else
+        echo "Table '$upd_tab' does not exist. Exiting."
+    fi
+}
+##################################################################
+
+##################################################################
+
+
+function update_table222() {
+    read -p "Enter the table name from the $SelectedDB DB: " upd_tab
+
+    # Check if the table exists
+    if [[ -f ~/DB/$SelectedDB/$upd_tab ]]; then
+        echo "Table exists."
+        
+        # Show the first line (header) for column selection
+        head -1 ~/DB/$SelectedDB/$upd_tab
+
+        # Prompt for column name
+        read -p "Enter the column name you want to update: " col_name
+
+        # Get the column index and type from the meta file
+        meta_file= ~/DB/$SelectedDB/".meta$upd_tab"
+        col_index=$(awk -v name="$col_name" 'BEGIN{FS=":"} {for (i=1; i<=NF; i++) if ($1 == name) print i; exit}' "$meta_file")
+        col_type=$(awk -v line="$col_index" 'BEGIN{FS=":"} NR==line {print $2}' "$meta_file")
+        is_pk=$(awk -v line="$col_index" 'BEGIN{FS=":"} NR==line {if ($3 == "pk") print "yes"; else print "no"}' "$meta_file")
+
+        if [[ -z $col_index ]]; then
+            echo "Invalid column name. Exiting."
+            return
+        fi
+
+        echo "Column '$col_name' found at index $col_index with type $col_type. Primary Key: $is_pk."
+
+        # Prompt for the value to replace and the new value
+        read -p "Enter the value you want to replace: " old_value
+        read -p "Enter the new value: " new_value
+
+        # Validation: Check data type for the new value
+        if [[ $col_type == "char" && ! $new_value =~ ^[a-zA-Z]+$ ]]; then
+            echo "Invalid input. Column '$col_name' requires a string (only alphabetic characters)."
+            return
+        elif [[ $col_type == "int" && ! $new_value =~ ^[0-9]+$ ]]; then
+            echo "Invalid input. Column '$col_name' requires an integer."
+            return
+        fi
+
+        # Validation: Primary Key
+        if [[ $is_pk == "pk" ]]; then
+            # Ensure unique values for the primary key
+            is_duplicate=$(awk -v val="$new_value" -v col="$col_index" 'BEGIN{FS=":"; found=0} $col == val {found=1} END{print found}' ~/DB/"$SelectedDB"/"$upd_tab")
+            
+            if [[ $is_duplicate -eq 1 ]]; then
+                echo "Duplicate value detected for primary key. Primary key values must be unique."
+                return
+            fi
+        fi
+
+        # Update the table with the new value
+        temp_file=$(mktemp)
+        awk -v col="$col_index" -v old_val="$old_value" -v new_val="$new_value" '
+        BEGIN{FS=":"; OFS=":"}
+        {
+            if ($col == old_val) $col = new_val;
+            print $0
+        }' ~/DB/"$SelectedDB"/"$upd_tab" > "$temp_file"
+
+        # Save changes to the original file
+        mv "$temp_file" ~/DB/"$SelectedDB"/"$upd_tab"
+
+        echo "Value updated successfully."
+    else
+        echo "Table '$upd_tab' does not exist. Exiting."
+    fi
+}
+######################################################################
+######################################################################
+######################################################################
+
+
+
+#!/usr/bin/bash
+
+echo "hello"
+
+function insert_table()
+
+{
+read -p " which table you want to insert in this DB : $SelectedDB " ins_table
+
+#echo $db_selected
+# echo $SelectedDB
+# echo $ins_table
+	if [[ -f $ins_table ]]
+	then
+no_lines=$(awk 'BEGIN{FS=":"} {} END{print NR} ' ".meta$ins_table")
+for ((i=1;i<=$no_lines;i++))
+do
+col_name=$(awk -v line=$i 'BEGIN{FS=":"} {if (NR == line) {print $1}} END{} ' ".meta$ins_table")
+col_type=$(awk -v line=$i 'BEGIN{FS=":"} {if (NR== line){print $2}} END{} ' ".meta$ins_table")
+
+is_pk=$(awk -v line=$i 'BEGIN{FS=":"} {if (NR == line) {print $3}} END{}' ".meta$ins_table")
+	#echo "no of lines in this table is : $no_lines"
+
+
+
+############################################################
+### int with pk
+##########################################################
+
+if [[ $col_type == "int" && $is_pk == "pk" ]]; then
+    while true; do
+        read -p "Please enter the $col_name (PK): " pk_number
+        
+        # Check if PK is a valid positive integer
+        if [[ ! $pk_number =~ ^[0-9]+$ ]]; then
+            echo "Please enter a valid positive integer!"
+            continue
+        fi
+
+         #Check for PK uniqueness
+        check_pk=$(awk -v pk_check="$pk_number" 'BEGIN {FS=":"; count=0} {if ($1 == pk_check) count++} END {print count}' ~/DB/$SelectedDB/$ins_table)
+
+        if [[ $check_pk -eq 0 ]]; then
+          #   Append the valid, unique PK to the file
+            echo -n "$pk_number:" >> ~/DB/$SelectedDB/"$ins_table"
+            echo "PK value $pk_number added successfully!"
+            break
+        else
+            echo "PK must be unique. This value already exists!"
+        fi
+    done
+fi
+
+
+
+
+
+
+
+
+
+
+
+##############################################################
+
+##############################################################
+### the string value with the validation
+#####################################################
+
+   if [[ $col_type == "char" && $is_pk != "pk" ]]; then
+   
+	read -p "please enter the string of $col_name col: " str_inserted
+	
+		while [[ ! $str_inserted =~ ^[a-z0-9]+$|^$ ]]
+		do
+			echo "pleas enter small letter string!!"
+			read -p "please enter the string: " str_inserted
+        	done
+	 echo -n "$str_inserted:" >> ~/DB/$SelectedDB/"$ins_table"
+ 	 echo "$str_inserted is added successfully to $col_name!"
+    fi
+    
+    
+######################################################  
+### normal int (not a pk)
+######################################################    
+  if [[ $col_type == "int" && $is_pk != "pk" ]]; then
+	read -p "please enter the $col_name : " int_val
+	
+		while [[ ! $int_val =~ ^[1-9]+[0-9]*$|^$ ]]
+		do
+			echo "pleas enter a valid number!!"
+			read -p "please enter the number: " int_val
+        	done
+	 echo -n "$int_val:" >> ~/DB/$SelectedDB/"$ins_table"
+	 echo "$int_val is added successfully to $col_name!"
+    fi
+    
+##################################
+#### if the pk is a string
+##################################
+if [[ $col_type == "char" && $is_pk == "pk" ]]; then
+    while true; do
+        read -p "Please enter the $col_name (PK): " pk_number_str
+        
+        # Check if PK is a valid positive integer
+        if [[ ! $pk_number_str =~ ^[a-z0-9]+$ ]]; then
+            echo "Please enter a valid charachter!"
+            continue
+        fi
+
+         #Check for PK uniqueness
+        check_pk_str=$(awk -v pk_check="$pk_number_str" 'BEGIN {FS=":"; count=0} {if ($1 == pk_check) count++} END {print count}' ~/DB/$SelectedDB/$ins_table)
+
+        if [[ $check_pk_str -eq 0 ]]; then
+          #   Append the valid, unique PK to the file
+            echo -n "$pk_number_str:" >> ~/DB/$SelectedDB/"$ins_table"
+            echo "PK value $pk_number_str added successfully!"
+            break
+        else
+            echo "PK must be unique. This value already exists!"
+        fi
+    done
+fi
+
+
+
+
+
+
+
+
+
+
+
+#########################################################
+    
+    ### end of the insert validations
+    echo -e "\n"
+
+
+done
+# to delete the last :
+truncate -s -1 "$ins_table"
+## for starting a new line for the new record
+echo "" >> ~/DB/$SelectedDB/"$ins_table"
+	else
+		echo "this table is not existed!!"
+
+	fi
+}
+
+
+
+
+#########################################################
+##########################################################
+##########################################################
+
+
+
+#!/usr/bin/bash
+
+echo "hello"
+
+function update_table_change_header() {
+    read -p "Which table do you want to update in this DB: $SelectedDB " upd_table
+
+    if [[ -f ~/DB/$SelectedDB/$upd_table ]]; then
+        echo "Table exists."
+        
+        # Show the first line (header) for column selection
+        head -1 ~/DB/$SelectedDB/$upd_table
+
+        meta_file=".meta$upd_table"
+        no_lines=$(awk 'BEGIN{FS=":"} {} END{print NR}' "$meta_file")
+
+        while true; do
+            # Prompt for column name
+            read -p "Enter the column name you want to update (or type 'exit' to quit): " col_name
+            if [[ $col_name == "exit" ]]; then
+                echo "Exiting update operation."
+                break
+            fi
+
+            # Get column details
+            col_index=$(awk -v name="$col_name" 'BEGIN{FS=":"} {if ($1 == name) print NR}' "$meta_file")
+            col_type=$(awk -v line=$col_index 'BEGIN{FS=":"} NR==line {print $2}' "$meta_file")
+            is_pk=$(awk -v line=$col_index 'BEGIN{FS=":"} NR==line {if ($3 == "pk") print "yes"; else print "no"}' "$meta_file")
+
+            if [[ -z $col_index ]]; then
+                echo "Invalid column name. Please try again."
+                continue
+            fi
+
+            echo "Column '$col_name' found at index $col_index with type $col_type. Primary Key: $is_pk."
+
+            # Prompt for value to replace and the new value
+            read -p "Enter the value you want to replace: " old_value
+            read -p "Enter the new value: " new_value
+
+            # Validation: Check data type for the new value
+            if [[ $col_type == "char" && ! $new_value =~ ^[a-zA-Z]+$ ]]; then
+                echo "Invalid input. Column '$col_name' requires a string (only alphabetic characters)."
+                continue
+            elif [[ $col_type == "int" && ! $new_value =~ ^[0-9]+$ ]]; then
+                echo "Invalid input. Column '$col_name' requires an integer."
+                continue
+            fi
+
+            # Validation: Primary Key
+            if [[ $col_type == "int" && $is_pk == "pk" ]]; then
+                # Ensure unique values for the primary key
+                is_duplicate=$(awk -v val="$new_value" -v col="$col_index" 'BEGIN{FS=":"; found=0} $col == val {found=1} END{print found}' ~/DB/"$SelectedDB"/"$upd_table")
+
+                if [[ $is_duplicate -eq 1 ]]; then
+                    echo "Duplicate value detected for primary key. Primary key values must be unique."
+                    continue
+                fi
+            fi
+
+            # Update the table with the new value
+            temp_file=$(mktemp)
+            awk -v col="$col_index" -v old_val="$old_value" -v new_val="$new_value" '
+            BEGIN{FS=":"; OFS=":"}
+            {
+                if ($col == old_val) $col = new_val;
+                print $0
+            }' ~/DB/"$SelectedDB"/"$upd_table" > "$temp_file"
+
+            # Save changes to the original file
+            mv "$temp_file" ~/DB/"$SelectedDB"/"$upd_table"
+
+            echo "Value updated successfully."
+        done
+    else
+        echo "This table does not exist!"
+    fi
+}
+
+#######################################################################
+#######################################################################
+#######################################################################
+#!/usr/bin/bash
+
+echo "Welcome to the Update Table Function"
+
+function update_table_without_checking_old_val() {
+#clear
+    read -p "Which table do you want to update in this DB: $SelectedDB " upd_table
+
+    if [[ -f ~/DB/$SelectedDB/$upd_table ]]; then
+        echo "Table exists."
+        
+        # Display column names (line 1)
+        echo "Column Names:"
+       # head -1 ~/DB/$SelectedDB/$upd_table
+
+        meta_file=".meta$upd_table"
+        no_lines=$(awk 'BEGIN{FS=":"} {} END{print NR}' "$meta_file")
+
+        while true; do
+        #clear
+            # Prompt for column name
+            head -1 ~/DB/$SelectedDB/$upd_table
+            read -p "Enter the column name you want to update (or type 'exit' to quit): " col_name
+            if [[ $col_name == "exit" ]]; then
+                echo "Exiting update operation."
+                break
+            fi
+
+            # Get column details
+            col_index=$(awk -v name="$col_name" 'BEGIN{FS=":"} {if ($1 == name) print NR}' "$meta_file")
+            col_type=$(awk -v line=$col_index 'BEGIN{FS=":"} NR==line {print $2}' "$meta_file")
+            is_pk=$(awk -v line=$col_index 'BEGIN{FS=":"} NR==line {if ($3 == "pk") print "yes"; else print "no"}' "$meta_file")
+
+            if [[ -z $col_index ]]; then
+                echo "Invalid column name. Please try again."
+                continue
+            fi
+
+            echo "Column '$col_name' found at index $col_index with type $col_type. Primary Key: $is_pk."
+
+            # Prompt for value to replace and the new value
+            read -p "Enter the value you want to replace: " old_value
+
+            read -p "Enter the new value: " new_value
+
+            # Validation: Check data type for the new value
+            if [[ $col_type == "char" && ! $new_value =~ ^[a-zA-Z]+$ ]]; then
+                echo "Invalid input. Column '$col_name' requires a string (only alphabetic characters)."
+                continue
+            elif [[ $col_type == "int" && ! $new_value =~ ^[0-9]+$ ]]; then
+                echo "Invalid input. Column '$col_name' requires an integer."
+                continue
+            fi
+
+            # Validation: Primary Key
+            if [[ $is_pk == "yes" ]]; then
+                # Ensure unique values for the primary key
+                is_duplicate=$(awk -v val="$new_value" -v col="$col_index" 'BEGIN{FS=":"; found=0} NR > 1 && $col == val {found=1} END{print found}' ~/DB/"$SelectedDB"/"$upd_table")
+
+                if [[ $is_duplicate -eq 1 ]]; then
+                    echo "Duplicate value detected for primary key. Primary key values must be unique."
+                    continue
+                fi
+            fi
+
+            # Update the table with the new value, skipping the header (line 1)
+            temp_file=$(mktemp)
+            awk -v col="$col_index" -v old_val="$old_value" -v new_val="$new_value" '
+            BEGIN{FS=":"; OFS=":"}
+            NR == 1 {print $0; next} # Keep the header unchanged
+            $col == old_val {$col = new_val} {print $0}
+            ' ~/DB/"$SelectedDB"/"$upd_table" > "$temp_file"
+
+            # Save changes to the original file
+            mv "$temp_file" ~/DB/"$SelectedDB"/"$upd_table"
+
+            echo "Value updated successfully."
+            clear
+        done
+    else
+        echo "This table does not exist!"
+    fi
+}
+
+#########################################################################
+#########################################################################
+#########################################################################
+
+
+
+
+echo "Welcome to the Update Table Function"
+
+function update_table() {
+    read -p "Which table do you want to update in this DB: $SelectedDB " upd_table
+
+    if [[ -f ~/DB/$SelectedDB/$upd_table ]]; then
+        echo "Table exists."
+        
+        # Display column names (line 1)
+        echo "Column Names:"
+        head -1 ~/DB/$SelectedDB/$upd_table
+
+        meta_file=".meta$upd_table"
+        no_lines=$(awk 'BEGIN{FS=":"} {} END{print NR}' "$meta_file")
+
+        while true; do
+            # Prompt for column name
+            read -p "Enter the column name you want to update (or type 'exit' to quit): " col_name
+            if [[ $col_name == "exit" ]]; then
+                echo "Exiting update operation."
+                break
+            fi
+
+            # Get column details
+            col_index=$(awk -v name="$col_name" 'BEGIN{FS=":"} {if ($1 == name) print NR}' "$meta_file")
+            col_type=$(awk -v line=$col_index 'BEGIN{FS=":"} NR==line {print $2}' "$meta_file")
+            is_pk=$(awk -v line=$col_index 'BEGIN{FS=":"} NR==line {if ($3 == "pk") print "yes"; else print "no"}' "$meta_file")
+
+            if [[ -z $col_index ]]; then
+                echo "Invalid column name. Please try again."
+                continue
+            fi
+
+            echo "Column '$col_name' found at index $col_index with type $col_type. Primary Key: $is_pk."
+
+            while true; do
+                # Prompt for the old value
+                read -p "Enter the value you want to replace: " old_value
+
+                # Check if the old value exists in the table starting from line 2
+                old_val_exists=$(awk -v col="$col_index" -v val="$old_value" '
+                BEGIN{FS=":"; found=0}
+                NR > 1 {if ($col == val) found=1}
+                END{print found}' ~/DB/"$SelectedDB"/"$upd_table")
+
+                if [[ $old_val_exists -eq 1 ]]; then
+                    echo "Value '$old_value' found in the column."
+                    
+                    # Prompt for the new value
+                    read -p "Enter the new value: " new_value
+
+                    # Validation: Check data type for the new value
+                    if [[ $col_type == "char" && ! $new_value =~ ^[a-zA-Z]+$ ]]; then
+                        echo "Invalid input. Column '$col_name' requires a string (only alphabetic characters)."
+                        continue
+                    elif [[ $col_type == "int" && ! $new_value =~ ^[0-9]+$ ]]; then
+                        echo "Invalid input. Column '$col_name' requires an integer."
+                        continue
+                    fi
+
+                    # Validation: Primary Key
+                    if [[ $col_type == "int" && $is_pk == "pk" ]]; then
+                        # Ensure unique values for the primary key
+                        is_duplicate=$(awk -v val="$new_value" -v col="$col_index" '
+                        BEGIN{FS=":"; found=0}
+                        NR > 1 && $col == val {found=1}
+                        END{print found}' ~/DB/"$SelectedDB"/"$upd_table")
+
+                        if [[ $is_duplicate -eq 1 ]]; then
+                            echo "Duplicate value detected for primary key. Primary key values must be unique."
+                            continue
+                        fi
+                    fi
+
+                    # Update the table with the new value, skipping the header (line 1), and count affected rows
+                    temp_file=$(mktemp)
+            awk -v col="$col_index" -v old_val="$old_value" -v new_val="$new_value" '
+            BEGIN{FS=":"; OFS=":"}
+            NR == 1 {print $0; next} # Keep the header unchanged
+            $col == old_val {$col = new_val} {print $0}
+            ' ~/DB/"$SelectedDB"/"$upd_table" > "$temp_file"
+
+            # Save changes to the original file
+            mv "$temp_file" ~/DB/"$SelectedDB"/"$upd_table"
+
+            echo "Value updated successfully."
+                    break
+                else
+                    echo "Value '$old_value' not found in the column. Please try again."
+                fi
+                #clear
+            done
+        done
+    else
+        echo "This table does not exist!"
+    fi
+}
+
+update_table
+
+
+

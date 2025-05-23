@@ -1,0 +1,58 @@
+#!/usr/bin/bash
+
+echo "from delete"
+
+function delete_data_from_table() {
+    read -p "Enter the table name from the $SelectedDB DB: " upd_tab
+
+    if [[ -f ~/DB/$SelectedDB/$upd_tab ]]; then
+        echo "File exists"
+    
+        # Show the first line (header) for selection
+        head -1 ~/DB/$SelectedDB/$upd_tab
+
+        read -p "Please enter the column name: " col_name
+        
+        # Check if column name exists in the header
+        check_col_name=$(awk -v na="$col_name" 'BEGIN{FS=":"} NR==1 {for(i=1; i<=NF; i++) if ($i == na) {found=1}} END{if (found) print 1; else print 0}' ~/DB/"$SelectedDB"/"$upd_tab")
+
+        if [[ $check_col_name -eq 1 ]]; then
+            echo "Column '$col_name' found."
+
+            # Get the column index based on the column name
+            check_col=$(awk -v name="$col_name" 'BEGIN{FS=":"} NR==1 {for (i=1; i<=NF; i++) if ($i == name) print i}' ~/DB/"$SelectedDB"/"$upd_tab")
+            echo "The column index is: $check_col"
+        
+            # Now, ask for the value to delete
+            read -p "What value are you looking for? : " del_val
+
+            # Check if the value exists in the specified column
+            value_found=$(awk -v col_index="$check_col" -v val="$del_val" 'BEGIN{FS=":"} $col_index == val {found=1} END{if (found) print 1; else print 0}' ~/DB/"$SelectedDB"/"$upd_tab")
+
+            if [[ $value_found -eq 1 ]]; then
+                echo "Value '$del_val' found in column '$col_name'. Proceeding to delete."
+
+                # Delete the row where the column value matches
+                # Create a temporary file to store the modified content
+                temp_file=$(mktemp)
+                awk -v col_index="$check_col" -v val="$del_val" 'BEGIN{FS=":"} $col_index != val {print $0}' ~/DB/"$SelectedDB"/"$upd_tab" > "$temp_file"
+
+                # Overwrite the original file with the new content
+                mv "$temp_file" ~/DB/"$SelectedDB"/"$upd_tab"
+
+                echo "Row(s) deleted successfully."
+            else
+                echo "Value '$del_val' not found in column '$col_name'. No rows were deleted."
+            fi
+        
+        else
+            echo "Invalid column name '$col_name'."
+        fi
+    
+    else
+        echo "Incorrect table name '$upd_tab'."
+    fi
+}
+
+delete_data_from_table
+

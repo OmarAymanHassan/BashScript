@@ -1,0 +1,170 @@
+#!/usr/bin/bash
+
+
+if [ -e ~/DB ]
+
+then
+	cd ~/DB
+	echo 'The DB is ready !'
+else
+	mkdir ~/DB
+	cd ~/DB
+	echo 'DB Is created successfuly'
+	echo 'DB is ready !' 
+fi
+
+# To change the style of input #########################
+
+PS3="PLEASE ENTER YOUR RESPOND ... "
+#declare -i option
+
+select option in Create_DB Select_DB Create_Table Exit
+do  
+
+
+case $option in 
+
+"Create_DB")
+	echo "Be sure that you wrote only charachters or letters, no special char"
+	read -p 'Please enter the name of the DB : ' db_name
+	
+	
+if [[ $db_name =~ ^[a-zA-Z]+$ ]]
+		then
+	if [[ -e $db_name ]]
+		then
+			echo 'Already Existed'
+		else
+			mkdir $db_name
+			echo "your DataBase $db_name is created successfully"
+		fi
+else
+	echo "please enter only letters , charachters " 
+fi
+		;;
+		
+		
+### DB SELECTION #########################
+
+
+"Select_DB")
+read -p "Please Enter Database Name: " SelectedDB
+
+if [[ $SelectedDB =~ ^[a-z]+$ ]]
+then
+	if [ -e $SelectedDB ]
+	then
+	cd $SelectedDB
+	echo "$SelectedDB Database is selected"
+	else 
+	echo "Database is not exist"
+	fi
+else
+	echo "Please enter a valid name"
+	break
+fi
+	;;
+	
+### TABLE CREATION ##############################
+"Create_Table")
+	#cd $db_name
+	read -p "please enter the table name : " table_name
+	if [[ $table_name =~ ^[a-zA-Z0-9]+$ ]]
+	then
+		if [[ -e $table_name ]]
+		then
+			if [[ ! -z $table_name ]]
+			then
+			echo "Table Is slected !!"
+			fi
+			
+
+		else 
+			touch $table_name
+			echo "table is created successfully"
+
+	
+### COL CREATION #####################################
+	read -p "Please enter number of cols : " col_num
+	
+	if [[ $col_num =~ ^[1-9]$ ]]
+		then
+			#if [[ -e ".meta$table_name" ]]
+			#then
+			#	echo ".."
+			#else
+			#	touch .meta$table_name
+			#fi
+			echo "you slected $col_num "
+			echo "please be careful !"
+			echo "the first col is designed to be the pk"
+			
+		for (( i=0;i<$col_num;i++))
+		do
+
+				
+			read -p "PLease enter the col name : " col_name
+			if [[ $col_name =~ ^[a-z]+[a-z_]*$ ]]
+			then
+			read -p "please enter the col type  int or char: " col_type
+			if [[ $col_type = "int" || $col_type = "char"  ]]
+			then
+				
+			if [[ $i -eq 0 ]]
+			then
+				echo "$col_name:$col_type:pk" >> ".meta$table_name"
+			else
+
+					echo "$col_name:$col_type" >> ".meta$table_name"
+			fi
+			else
+				echo "please select int or char only"
+			
+			fi
+			
+			else 
+				echo "please enter a valid name!"
+			
+			fi 
+			
+			
+		done
+		else
+			echo "please enter valid col num (from 1 -- 9)"
+		fi
+		
+		fi
+	else 
+		echo "please enter a valid name"
+		break
+	fi	
+	
+	
+	select tb_options in list_tables exit
+		do
+		#read -p "please enter your choice : " tb_choice
+		case $tb_options in
+		"list_tables")
+		echo "all tables are : "
+			ls $table_name
+			;;
+		"" )
+			echo "space is invalid"
+			;;
+		"exit")
+			break
+			;;
+		*)
+			echo "please enter a valid syntax "
+			esac
+		done	
+		
+;;
+"Exit")
+		break
+		;;
+*)
+	echo "Please enter a valid number --> from 1 to 4 :) "
+esac
+
+done

@@ -1,0 +1,107 @@
+#!/usr/bin/bash
+
+clear
+
+
+echo $PWD
+
+echo "HEEEE"
+
+
+function insert_table()
+
+{
+
+clear
+
+## declare a variable to make the array unique and not duplicated 
+## in case of looping
+
+
+read -p " which table you want to insert in this DB : $selectd_db" ins_table
+
+	if [[ -f $ins_table ]]
+	then
+
+select dt in string int date  exit
+do
+
+	case $dt in 
+	"string")
+		echo "string"
+		
+
+declare -a names
+meta_file=".meta$ins_table"
+
+# Read each line, split by ':' directly
+while IFS=: read -r col_name col_type col_extra; do
+    # Check if the column type is "char"
+    if [[ $col_type == "char" ]]; then
+
+        echo "$col_name is of type char. Enter string."
+        #names+=("$col_name")
+        count=1
+        for i in "${names[@]}"
+        do
+        	if [[ $i == {names[$count]} ]]
+        
+        done
+    fi
+
+done < "$meta_file"
+echo "the array have the following: ${names[@]}, $col_name"
+found=0
+    read -p "which col you want to insert in ? : " col_ins
+  
+  
+  for col_elem in "${names[@]}"
+  
+  do
+    if [[ $col_ins = $col_elem ]]
+    then
+    found=1
+    	echo "this col can accept string!!"
+    fi
+    done     	
+    if [[ found -eq 0 ]]
+    then
+    	echo "your col cant accept string"
+    	fi
+   # break
+		
+		
+		#cut -f1 -d: ".meta$ins_table"
+		
+		#!/bin/bash
+
+# Simulate reading the meta file
+
+
+		;;
+	"int")
+		echo "int"
+		;;
+	"date")
+		echo "date"
+		;;
+	"exit")
+		echo "exiting...."
+		break
+		;;
+	*)
+		echo "please enter a valid option"
+	esac
+
+done
+
+
+	else
+	echo "please enter a present table !!"
+	fi
+
+
+
+}
+
+insert_table

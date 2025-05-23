@@ -1,0 +1,30 @@
+#!/usr/bin/bash
+
+export selected_db=""
+function connect_to_db()
+{
+
+read -p "Please Enter Database Name: " SelectedDB
+
+if [[ $SelectedDB =~ ^[a-z]+$ ]]
+then
+	if [ -d ~/DB/$SelectedDB ]
+		then
+		cd ~/DB/$SelectedDB
+		echo "$SelectedDB Database is selected"
+		selected_db=$SelectedDB
+	else 
+		echo "Database is not exist"
+		fi
+else
+	echo "Please enter a valid name"
+	#break
+fi
+
+## export the selected_db to be used in case of creating a table
+ #export $SelectedDB
+
+}
+
+connect_to_db
+

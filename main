@@ -1,0 +1,59 @@
+#!/usr/bin/bash
+
+
+
+while true 
+do
+select option in Create_DB connect_DB Create_Table Table_menu list_db Exit
+do 
+
+case $option in
+"Create_DB")
+	. ~/project/scripts/create_DB
+	# .$HOME/project/scripts/create_DB
+	;;
+	
+"connect_DB")
+	. ~/project/scripts/connect_to_DB
+	;;
+	
+"Create_Table")
+	. ~/project/scripts/create_TB
+	;;
+"Table_menu")
+	
+	. ~/project/scripts/table_menu
+	;;
+	
+"list_db")
+	clear
+count=1
+
+# Loop through files in ~/DB/
+for i in ~/DB/*
+do
+    # Extract the base name of the file
+    base_name="${i##*/}"
+    
+    # Print the index and the base name
+    echo "${count} DB is called $base_name"
+    
+    # Increment the counter
+    count=$((count + 1))
+done
+
+	;;
+"Exit")
+	break 2
+	;;
+*)
+	echo "invalid option"
+	
+esac
+
+done
+
+
+done
+
+

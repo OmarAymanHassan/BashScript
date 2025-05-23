@@ -1,0 +1,64 @@
+#!/usr/bin/bash
+
+echo "from delete"
+function delete_data_from_table()
+{
+    read -p " Enter the table name from the $SelectedDB DB : " upd_tab
+
+    if [[ -f $upd_tab ]]; then
+        echo "file exists"
+    
+        # Show the first line for selection
+        head -1 ~/DB/$SelectedDB/$upd_tab
+
+        read -p "please enter the col_name: " col_name
+		
+        check_col_name=$(awk -v na="$col_name" 'BEGIN{FS=":"} NR==1 {for(i=1; i<=NF; i++) if ($i == na) {found=1}} END{if (found) print 1; else print 0}' ~/DB/"$SelectedDB"/"$upd_tab")
+
+
+         
+         if [[ $check_col_name -eq 1 ]];then
+         
+         	echo "found col name"
+         	
+         
+
+        # Get the column index based on the column name
+        check_col=$(awk -v name="$col_name" 'BEGIN{FS=":"} {for (i=1; i<=NF; i++) if ($i == name) print i}' ~/DB/"$SelectedDB"/"$upd_tab")
+        echo "The column index is: $check_col"
+    
+        # Now after selecting the col_index, look for the value to delete
+        read -p "What value are you looking for? : " del_val
+
+        # Get the entire row based on the column index and value
+        row_val=$(awk -v col_index="$check_col" -v val="$del_val" 'BEGIN{FS=":"} {if ($col_index == val) print $0}' ~/DB/"$SelectedDB"/"$upd_tab")
+        echo "Row to delete: $row_val"
+        
+        ######################
+          # Check if the value exists in the specified column
+            value_found=$(awk -v col_index="$check_col" -v val="$del_val" 'BEGIN{FS=":"} $col_index == val {found=1} END{if (found) print 1; else print 0}' ~/DB/"$SelectedDB"/"$upd_tab")
+
+            if [[ $value_found -eq 1 ]]; then
+                echo "Value '$del_val' found in column '$col_name'. Proceeding to delete."
+        
+        ########
+    
+        # Delete the row that matches `row_val`
+        deleted_row=$(awk -v del_row="$row_val" 'BEGIN{FS=":"} $0 != del_row { print $0 }' ~/DB/"$SelectedDB"/"$upd_tab")
+    
+        # Save the result back to the file
+        echo "$deleted_row" > ~/DB/"$SelectedDB"/"$upd_tab"
+
+        echo "Row deleted successfully."
+        
+       else
+       	echo "invalid col name"
+       	fi
+    
+    else
+        echo "Incorrect table name"
+    fi
+}
+
+delete_data_from_table
+

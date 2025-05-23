@@ -1,0 +1,84 @@
+#!/usr/bin/bash
+
+
+function select_table()
+{
+read -p " Enter the table name from the $SelectedDB DB : " sel_tab
+
+#echo $db_selected
+#echo $SelectedDB
+#echo $ins_table
+	if [[ -f $sel_tab ]]
+	then
+		echo "your table exist"
+		read -p "Please enter the value to search for: " name
+		match_values=$(awk -v n="$name" 'BEGIN{FS=":"} 
+		{
+			for (i = 1 ; i <= NF ; i++)
+			{
+			if ($i == n)
+				{
+				print $0
+				next
+				
+				}
+			}
+			
+			}
+		 END{}
+		 ' ~/DB/$SelectedDB/$sel_tab )
+	count_rows=$(echo "$match_values" | wc -l)
+	#echo "number of matvhed rows :"$count_rows
+		
+		if [[ -n $match_values ]]; then
+			echo "there is $count_rows matched rows"
+			echo "$match_values"
+			else
+			echo "there is no matching rows!!"
+			fi
+			
+		
+		
+	else
+		echo "no table found"
+	fi
+
+
+}
+
+
+function gpt()
+
+{
+read -p " Enter the table name from the $SelectedDB DB : " sel_tab
+if [[ -f $sel_tab ]]; then
+    echo "Your table exists"
+    read -p "Please enter the value to search for: " name
+    col_name=$(awk -v n="$name" '
+        BEGIN {FS=":"}
+        {
+            for (i = 1; i <= NF; i++) {
+                if ($i == n) {
+                    print $0
+                    next  # Move to the next line once a match is found
+                }
+            }
+        }' ~/DB/$SelectedDB/$sel_tab)
+
+	count_rows=$(echo "$col_name" | wc -l)
+	echo "number of matvhed rows :"$count_rows
+    if [[ -n $col_name ]]; then
+        echo "Matching rows:"
+        echo "$col_name"
+    else
+        echo "No matching rows found."
+    fi
+else
+    echo "No table found"
+fi
+
+
+
+}
+#gpt
+select_table

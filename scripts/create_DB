@@ -1,0 +1,40 @@
+#!/usr/bin/bash
+
+if [ -e ~/DB ]
+
+then
+	cd ~/DB
+	echo 'DBMS is ready !'
+else
+	mkdir ~/DB
+	cd ~/DB
+	echo 'DBMS Is created successfuly'
+	echo 'DBMS is ready !' 
+fi
+
+
+
+
+function Create_db ()
+{
+	echo "Be sure that you wrote only charachters or letters, no special char"
+	read -p 'Please enter the name of the DB : ' db_name
+	
+	
+if [[ $db_name =~ ^[a-zA-Z]+$ ]]
+		then
+	if [[ -e $db_name ]]
+		then
+			echo 'Already Existed'
+		else
+			mkdir $db_name
+			echo "your DataBase $db_name is created successfully"
+		fi
+else
+	echo "please enter only letters , charachters " 
+fi
+
+
+}
+
+Create_db

@@ -1,0 +1,51 @@
+#!/usr/bin/bash
+
+clear
+	if [[ ! -z $SelectedDB ]]
+		then
+		cd ~/DB/$SelectedDB
+	else
+	echo "--------------------------------------"
+	echo "------PLEASE SELECT THE DB FIRST------"
+	echo "--------------------------------------"
+	break 2	
+
+	fi
+
+
+select option in "Select from table" "insert in table" "update from tabe" "delete from table"
+
+do
+
+case $option in 
+"Select from table")
+
+	. ~/project/scripts/select_from_table
+
+	;;
+"insert in table")
+	echo "data inserted"
+	. ~/project/scripts/insert
+	#$PWD
+	;;
+	
+"update from tabe")
+	echo "Data Updated"
+	. ~/project/scripts/update_table	
+
+	;;
+"delete from table")
+
+	echo "Delete from table"
+	. ~/project/scripts/delete
+	;;
+
+*)
+
+	echo "please enter a valid option"
+	;;
+
+esac
+
+
+done

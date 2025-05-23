@@ -1,0 +1,252 @@
+#!/usr/bin/bash
+
+function insert_table()
+
+{
+clear
+read -p " which table you want to insert in this DB : $SelectedDB " ins_table
+
+#echo $db_selected
+	if [[ -f $ins_table ]]
+	then
+no_lines=$(awk 'BEGIN{FS=":"} {} END{print NR} ' ".meta$ins_table")
+for ((i=1;i<=$no_lines;i++))
+do
+col_name=$(awk -v line=$i 'BEGIN{FS=":"} {if (NR == line) {print $1}} END{} ' ".meta$ins_table")
+col_type=$(awk -v line=$i 'BEGIN{FS=":"} {if (NR== line){print $2}} END{} ' ".meta$ins_table")
+
+is_pk=$(awk -v line=$i 'BEGIN{FS=":"} {if (NR == line) {print $3}} END{}' ".meta$ins_table")
+
+
+############################################################
+### int with pk
+##########################################################
+
+#if [[ $col_type == "int" && $is_pk == "pk" ]]; then
+   # while true; do
+      #  read -p "Please enter the $col_name (PK): " pk_number
+        
+        # Check if PK is a valid positive integer
+        #if [[ ! $pk_number =~ ^[0-9]+$ ]]; then
+          #  echo "Please enter a valid positive integer!"
+         #   continue
+        #fi
+
+         #Check for PK uniqueness
+        #check_pk=$(awk -v pk_check="$pk_number" 'BEGIN {FS=":"; count=0} {if ($1 == pk_check) count++} END {print count}' ~/DB/$SelectedDB/$ins_table)
+
+        #if [[ $check_pk -eq 0 ]]; then
+          #   Append the valid, unique PK to the file
+       #     echo -n "$pk_number:" >> ~/DB/$SelectedDB/"$ins_table"
+      #      echo "PK value $pk_number added successfully!"
+     #       break
+    #    else
+   #         echo "PK must be unique. This value already exists!"
+  #      fi
+ #   done
+#fi
+
+if [[ $col_type == "int" && $is_pk == "pk" ]]; then
+    while true; do
+        read -p "Please enter the $col_name (PK): " pk_number
+        
+        # Check if PK is a valid positive integer
+        if [[ ! $pk_number =~ ^[0-9]+$ ]]; then
+            echo "Please enter a valid positive integer!"
+            continue
+        fi
+
+        # Check if the PK exceeds 255 characters
+        if [[ ${#pk_number} -gt 10 ]]; then
+            echo "Error: The number exceeds 10 characters. Please try again."
+            continue
+        fi
+
+        # Check for PK uniqueness
+        check_pk=$(awk -v pk_check="$pk_number" 'BEGIN {FS=":"; count=0} {if ($1 == pk_check) count++} END {print count}' ~/DB/$SelectedDB/$ins_table)
+
+        if [[ $check_pk -eq 0 ]]; then
+            # Append the valid, unique PK to the file
+            echo -n "$pk_number:" >> ~/DB/$SelectedDB/"$ins_table"
+            echo "PK value $pk_number added successfully!"
+            break
+        else
+            echo "PK must be unique. This value already exists!"
+        fi
+    done
+fi
+
+
+
+
+
+
+
+
+
+
+##############################################################
+
+##############################################################
+### the string value with the validation
+#####################################################
+
+ #  if [[ $col_type == "char" && $is_pk != "pk" ]]; then
+   
+#	read -p "please enter the string of $col_name col: " str_inserted
+	
+#		while [[ ! $str_inserted =~ ^[a-z0-9]+$|^$ ]]
+#		do
+#			echo "pleas enter small letter string!!"
+#			read -p "please enter the string: " str_inserted
+ #       	done
+#	 echo -n "$str_inserted:" >> ~/DB/$SelectedDB/"$ins_table"
+ #	 echo "$str_inserted is added successfully to $col_name!"
+  #  fi
+    
+    
+    
+    
+    
+    ####################################################
+    
+    
+    ######
+if [[ $col_type == "char" && $is_pk != "pk" ]]; then
+    while true; do
+        read -p "Please enter the string for $col_name column: " str_inserted
+
+        # Check if the string contains only lowercase letters and numbers
+        if [[ ! $str_inserted =~ ^[a-z0-9]+$|^$ ]]; then
+            echo "Please enter a valid string containing only lowercase letters and numbers!"
+            continue
+        fi
+
+        # Check if the string exceeds 255 characters
+        if [[ ${#str_inserted} -gt 255 ]]; then
+            echo "Error: The string exceeds 255 characters. Please try again."
+            continue
+        fi
+
+        # If both validations pass, append the string to the table
+        echo -n "$str_inserted:" >> ~/DB/$SelectedDB/"$ins_table"
+        echo "$str_inserted is added successfully to $col_name!"
+        break
+    done
+fi
+
+#######################################
+    
+######################################################  
+### normal int (not a pk)
+######################################################    
+ # if [[ $col_type == "int" && $is_pk != "pk" ]]; then
+#	read -p "please enter the $col_name : " int_val
+	
+#		while [[ ! $int_val =~ ^[1-9]+[0-9]*$|^$ ]]
+#		do
+#			echo "pleas enter a valid number!!"
+#			read -p "please enter the number: " int_val
+ #       	done
+#	 echo -n "$int_val:" >> ~/DB/$SelectedDB/"$ins_table"
+#	 echo "$int_val is added successfully to $col_name!"
+  #  fi
+  
+  
+ if [[ $col_type == "int" && $is_pk != "pk" ]]; then
+    while true; do
+        read -p "Please enter the $col_name: " int_val
+        
+        # Check if the input is either an empty string (allowing empty input) or a valid positive integer
+        if [[ -z "$int_val" || $int_val =~ ^[1-9]+[0-9]*$|^$ ]]; then
+            # Check if the input exceeds 255 characters
+            if [[ ${#int_val} -le 10 ]]; then
+                # If it's valid and within the character limit, append it to the file
+                echo -n "$int_val:" >> ~/DB/$SelectedDB/"$ins_table"
+                echo "$int_val is added successfully to $col_name!"
+                break
+            else
+                # If the input exceeds 255 characters, show an error and prompt the user again
+                echo "Error: The input exceeds 10 characters. Please try again."
+            fi
+        else
+            # If the input is not a valid positive integer, show an error
+            echo "Please enter a valid positive integer!"
+        fi
+    done
+fi
+ 
+  
+  
+  
+  
+  
+  
+  
+    
+##################################
+#### if the pk is a string
+##################################
+if [[ $col_type == "char" && $is_pk == "pk" ]]; then
+    while true; do
+        read -p "Please enter the $col_name (PK): " pk_number_str
+        
+        # Check if PK is a valid positive integer
+        if [[ ! $pk_number_str =~ ^[a-z0-9]+$ ]]; then
+            echo "Please enter a valid charachter!"
+            continue
+        fi
+       
+        if [[ ${#pk_number_str} -gt 10 ]]; then
+            echo "Error: The primary key must not exceed 255 characters."
+            continue
+        fi
+         #Check for PK uniqueness
+        check_pk_str=$(awk -v pk_check="$pk_number_str" 'BEGIN {FS=":"; count=0} {if ($1 == pk_check) count++} END {print count}' ~/DB/$SelectedDB/$ins_table)
+
+        if [[ $check_pk_str -eq 0 ]]; then
+          #   Append the valid, unique PK to the file
+            echo -n "$pk_number_str:" >> ~/DB/$SelectedDB/"$ins_table"
+            echo "PK value $pk_number_str added successfully!"
+            break
+        else
+            echo "PK must be unique. This value already exists!"
+        fi
+    done
+fi
+
+
+
+
+
+
+
+
+
+
+
+#########################################################
+    
+    ### end of the insert validations
+    echo -e "\n"
+
+
+done
+# to delete the last :
+truncate -s -1 "$ins_table"
+## for starting a new line for the new record
+echo "" >> ~/DB/$SelectedDB/"$ins_table"
+	else
+		echo "this table is not existed!!"
+
+	fi
+}
+
+
+
+
+
+insert_table
+
+
+

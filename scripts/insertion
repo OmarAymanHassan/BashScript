@@ -1,0 +1,82 @@
+#!/usr/bin/bash
+
+#clear
+
+
+#echo $PWD
+
+#echo "HEEEE"
+
+
+function insert_table()
+
+{
+
+clear
+#echo "hey"
+
+read -p " which table you want to insert in this DB : $selectd_db" ins_table
+
+	if [[ -f $ins_table ]]
+	then
+
+select dt in string int date exit
+do
+
+case $dt in 
+"string")
+	echo "string"
+		
+
+#declare -a names
+meta_file=".meta$ins_table"
+echo "first"
+
+# Read each line, split by ':' directly
+while IFS=: read -r col_name col_type col_extra; do
+    # Check if the column type is "char"
+    echo "second"
+    if [[ $col_type == "char" ]]; then
+	read -p "please enter the string: " str_inserted
+	
+	#	while [[ ! $str_inserted =~ ^[a-z]+$ ]]
+	#	do
+	#		echo "pleas enter small letter string!!"
+	#		read -p "please enter the string: " str_inserted
+        #	done
+	#echo "$str_inserted" >> "$table_selected"
+    fi
+
+done < "$meta_file"
+
+# Simulate reading the meta file
+
+
+		;;
+	"int")
+		echo "int"
+		;;
+	"date")
+		echo "date"
+		;;
+	"exit")
+		echo "exiting...."
+		break
+		;;
+	*)
+		echo "please enter a valid option"
+esac
+
+done
+
+
+	else
+	echo "please enter a present table !!"
+	fi
+
+
+
+}
+
+insert_table
+
