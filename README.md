@@ -19,13 +19,23 @@ A simple command-line database management system built entirely using **Bash scr
 
 ## 📂 Project Structure
 
+
 ```bash
 .
-├── main.sh                # Entry point
-├── db_functions.sh        # Database operations
-├── table_functions.sh     # Table & record operations
-├── lib/                   # Additional utilities
-└── README.md              # Project documentation
+├── main.sh                  # Entry point for the DBMS
+├── dbms/                    # Directory for database files (e.g., schemas, data)
+└── scripts/                 # All operation scripts
+    ├── connect_to_DB
+    ├── create_DB
+    ├── create_TB
+    ├── delete
+    ├── delete_data
+    ├── insert
+    ├── insert_table
+    ├── insertion
+    ├── select_from_table
+    ├── table_menu
+    └── update_table
 ```
 
 ---
