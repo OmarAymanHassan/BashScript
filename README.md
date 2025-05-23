@@ -23,7 +23,7 @@ A simple command-line database management system built entirely using **Bash scr
 ```bash
 .
 ├── main.sh                  # Entry point for the DBMS
-├── dbms/                    # Directory for database files (e.g., schemas, data)
+├── dbms.sh                  # Directory for database files (e.g., schemas, data)
 └── scripts/                 # All operation scripts
     ├── connect_to_DB
     ├── create_DB
