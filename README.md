@@ -45,15 +45,7 @@ A simple command-line database management system built entirely using **Bash scr
 - Create a new database
 - Add tables with custom column types
 - Insert and retrieve records using structured prompts
+- Update existing records in a table
+- Delete specific rows or entire tables
 
 ---
-
-## 🛠️ Limitations
-
-- No support for joins or foreign keys
-- No transaction management
-- No GUI
-
----
-
-## 🤝 Contri
